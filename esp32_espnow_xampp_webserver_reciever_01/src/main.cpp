@@ -247,7 +247,15 @@ void loop() {
     lastEventTime = millis();
   }
 
-UploadData2Xampp();
+if (temperature > 0 & humidity > 0){
+
+
+    UploadData2Xampp();
+}
+else{
+  Serial.println("no data to upload..");
+  delay(5000);
+}
 // ++for upload data to xampp
 
   //   // ++get data from esp_now to temperator and humidity
