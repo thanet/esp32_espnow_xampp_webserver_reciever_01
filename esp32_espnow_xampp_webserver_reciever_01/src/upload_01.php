@@ -20,13 +20,14 @@ if (!$conn) {
 
 echo "Database connection is OK<br>"; 
 
-if(isset($_POST["read_module_no"]) && isset($_POST["temperature"]) && isset($_POST["humidity"])) {
+if(isset($_POST["read_module_no"]) && isset($_POST["temperature"]) && isset($_POST["humidity"]) && isset($_POST["readingId"])) {
 	
 	$rmn = $_POST["read_module_no"];
 	$t = $_POST["temperature"];
 	$h = $_POST["humidity"];
+    $rid = $_POST["readingId"];
 
-	$sql = "INSERT INTO sht30_data (read_module_no, temperature, humidity) VALUES (".$rmn.", ".$t.", ".$h.")"; 
+	$sql = "INSERT INTO sht30_data (read_module_no, temperature, humidity, readingId) VALUES (".$rmn.", ".$t.", ".$h.", ".$rid.")"; 
 
 	if (mysqli_query($conn, $sql)) { 
 		echo "\nNew record created successfully"; 
