@@ -24,8 +24,10 @@ const char* password = "enjoy042611749";
 String URL = "http://192.168.0.113/EspData/upload_01.php";
 
 // public variable
+int readmoduleno = 0;
 int temperature = 0; 
 int humidity = 0;
+int readId = 0;
 
 // phototype function
 void UploadData2Xampp();
@@ -73,8 +75,10 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
 // ++for upload data to xampp
 
     // ++get data from esp_now to temperator and humidity
+    readmoduleno = int(board["read_module_no"]);
     temperature = int(board["temperature"]);
     humidity = int(board["humidity"]);
+    readId = int(board["readingId"]);
     // --get data from esp_now to temperator and humidify
     //WiFi.mode(WIFI_STA);
     //delay (2000);
@@ -291,7 +295,7 @@ UploadData2Xampp();
 void UploadData2Xampp() {
   Serial.println("Have Data to up Upload...");
 
-  String postData = "temperature=" + String(temperature) + "&humidity=" + String(humidity); 
+  String postData = "read_module_no=" + String(readmoduleno) + "temperature=" + String(temperature) + "&humidity=" + String(humidity) + "&readingID=" + String(readId); 
 
   HTTPClient http; 
   http.begin(URL);
