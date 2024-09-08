@@ -14,14 +14,14 @@
 // Replace with your network credentials (STATION)  enjoy office
 // const char* ssid = "True Enjoy";
 // const char* password = "enjoy7777777777";
-// String URL = "http://127.0.0.1/esp8266/test.php";
+// String URL = "http://127.0.0.1/esp8266/upload_01.php";
 
 
 
 // Replace with your network credentials (STATION)  บ้านริมโขง
 const char* ssid = "ENJMesh";
 const char* password = "enjoy042611749";
-String URL = "http://192.168.0.113/EspData/upload.php";
+String URL = "http://192.168.0.113/EspData/upload_01.php";
 
 // public variable
 int temperature = 0; 
