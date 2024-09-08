@@ -25,8 +25,8 @@ String URL = "http://192.168.0.113/EspData/upload_01.php";
 
 // public variable
 int readmoduleno = 0;
-int temperature = 0; 
-int humidity = 0;
+float temperature = 0; 
+float humidity = 0;
 int readId = 0;
 
 // phototype function
@@ -62,7 +62,7 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
   board["read_module_no"] = incomingReadings.read_module_no;
   board["temperature"] = incomingReadings.temp;
   board["humidity"] = incomingReadings.hum;
-  board["readingId"] = String(incomingReadings.readingId);
+  board["readingId"] = incomingReadings.readingId;
   String jsonString = JSON.stringify(board);
   events.send(jsonString.c_str(), "new_readings", millis());
   
@@ -76,48 +76,14 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
 
     // ++get data from esp_now to temperator and humidity
     readmoduleno = int(board["read_module_no"]);
-    temperature = int(board["temperature"]);
-    humidity = int(board["humidity"]);
+    temperature = incomingReadings.temp;
+    humidity = incomingReadings.hum;
     readId = int(board["readingId"]);
-    // --get data from esp_now to temperator and humidify
-    //WiFi.mode(WIFI_STA);
-    //delay (2000);
-   
-  // String postData = "temperature=" + String(temperature) + "&humidity=" + String(humidity); 
-
-  // HTTPClient http; 
-  // http.begin(URL);
-  // http.addHeader("Content-Type", "application/x-www-form-urlencoded"); 
-  
-  // int httpCode = http.POST(postData); 
-  // String payload = http.getString(); 
-  
-  
-  // if(httpCode > 0) {
-  //   // file found at server
-  //   if(httpCode == HTTP_CODE_OK) {
-  //     String payload = http.getString();
-  //     Serial.println(payload);
-  //   } else {
-  //     // HTTP header has been send and Server response header has been handled
-  //     Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-  //   }
-  // } else {
-  //   Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-  // }
-  
-  // http.end();  //Close connection
-  
-  // Serial.print("URL : "); Serial.println(URL); 
-  // Serial.print("Data: "); Serial.println(postData); 
-  // Serial.print("httpCode: "); Serial.println(httpCode); 
-  // Serial.print("payload : "); Serial.println(payload); 
-  // Serial.println("--------------------------------------------------");
-
-  // delay(10000);
-// --for upload data to xampp
+    
 
 }
+
+
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
@@ -247,7 +213,7 @@ void loop() {
     lastEventTime = millis();
   }
 
-if (temperature > 0 & humidity > 0){
+if (temperature > 0 && humidity > 0){
 
 
     UploadData2Xampp();
@@ -256,44 +222,7 @@ else{
   Serial.println("no data to upload..");
   delay(5000);
 }
-// ++for upload data to xampp
 
-  //   // ++get data from esp_now to temperator and humidity
-  //   temperature = int(board["temperature"]);
-  //   humidity = int(board["humidity"]);
-  //   // --get data from esp_now to temperator and humidify
-
-  //   String postData = "temperature=" + String(temperature) + "&humidity=" + String(humidity); 
-
-  //   HTTPClient http; 
-  //   http.begin(URL);
-  //   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    
-  //   int httpCode = http.POST(postData); 
-  //   String payload = http.getString(); 
-
-  //   if(httpCode > 0) {
-  //   // file found at server
-  //     if(httpCode == HTTP_CODE_OK) {
-  //     String payload = http.getString();
-  //     Serial.println(payload);
-  //     } else {
-  //       // HTTP header has been send and Server response header has been handled
-  //       Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-  //     }
-  //     } else {
-  //       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-  //   }
-  
-  // http.end();  //Close connection
-    
-  //   Serial.print("URL : "); Serial.println(URL); 
-  //   Serial.print("Data: "); Serial.println(postData); 
-  //   Serial.print("httpCode: "); Serial.println(httpCode); 
-  //   Serial.print("payload : "); Serial.println(payload); 
-  //   Serial.println("--------------------------------------------------");
-  //   delay(10000);
-// --for upload data to xampp
 
 }
 
@@ -301,9 +230,12 @@ else{
 
 //Function for upload data to xampp
 void UploadData2Xampp() {
-  Serial.println("Have Data to up Upload...");
+  Serial.println("Uploading data to server...");
 
-  String postData = "read_module_no=" + String(readmoduleno) + "temperature=" + String(temperature) + "&humidity=" + String(humidity) + "&readingID=" + String(readId); 
+  String postData = "read_module_no=" + String(readmoduleno) + 
+                    "&temperature=" + String(temperature) + 
+                    "&humidity=" + String(humidity) + 
+                    "&readingId=" + String(readId); 
 
   HTTPClient http; 
   http.begin(URL);
@@ -311,12 +243,15 @@ void UploadData2Xampp() {
   
   int httpCode = http.POST(postData); 
   String payload = http.getString(); 
-  
-  Serial.print("URL : "); Serial.println(URL); 
+
+  Serial.print("URL: "); Serial.println(URL); 
   Serial.print("Data: "); Serial.println(postData); 
-  Serial.print("httpCode: "); Serial.println(httpCode); 
-  Serial.print("payload : "); Serial.println(payload); 
+  Serial.print("HTTP Code: "); Serial.println(httpCode); 
+  Serial.print("Response: "); Serial.println(payload); 
   Serial.println("--------------------------------------------------");
-  delay(20000);
+
+  http.end();  // Close connection
+  delay(20000); // Delay between uploads
+
 
 }

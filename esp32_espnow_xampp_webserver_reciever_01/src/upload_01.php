@@ -10,30 +10,47 @@
 $hostname = "localhost"; 
 $username = "root"; 
 $password = ""; 
-$database = "esp_data"; 
+$database = "esp_data00"; 
 
+// Create connection
 $conn = mysqli_connect($hostname, $username, $password, $database);
 
+// Check connection
 if (!$conn) { 
-	die("Connection failed: " . mysqli_connect_error()); 
+    die("Connection failed: " . mysqli_connect_error()); 
 } 
 
 echo "Database connection is OK<br>"; 
 
+// Check if form data is set
 if(isset($_POST["read_module_no"]) && isset($_POST["temperature"]) && isset($_POST["humidity"]) && isset($_POST["readingId"])) {
-	
-	$rmn = $_POST["read_module_no"];
-	$t = $_POST["temperature"];
-	$h = $_POST["humidity"];
+    
+    $rmn = $_POST["read_module_no"];
+    $t = $_POST["temperature"];
+    $h = $_POST["humidity"];
     $rid = $_POST["readingId"];
 
-	$sql = "INSERT INTO sht30_data (read_module_no, temperature, humidity, readingId) VALUES (".$rmn.", ".$t.", ".$h.", ".$rid.")"; 
+    // Prepare an SQL statement
+    $stmt = $conn->prepare("INSERT INTO sht30_data (read_module_no, temperature, humidity, readingId) VALUES (?, ?, ?, ?)");
+    
+    if ($stmt === false) {
+        die("Prepare failed: " . htmlspecialchars($conn->error));
+    }
 
-	if (mysqli_query($conn, $sql)) { 
-		echo "\nNew record created successfully"; 
-	} else { 
-		echo "Error: " . $sql . "<br>" . mysqli_error($conn); 
-	}
+    // Bind parameters (i = integer, d = double, s = string, b = BLOB)
+    $stmt->bind_param("idid", $rmn, $t, $h, $rid);
+    
+    // Execute the statement
+    if ($stmt->execute()) { 
+        echo "New record created successfully"; 
+    } else { 
+        echo "Error: " . htmlspecialchars($stmt->error); 
+    }
+
+    // Close the statement
+    $stmt->close();
 }
 
+// Close the connection
+$conn->close();
 ?>
