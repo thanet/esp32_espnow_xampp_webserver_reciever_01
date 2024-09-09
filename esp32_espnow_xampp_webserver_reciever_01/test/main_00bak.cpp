@@ -242,14 +242,16 @@ void UploadData2Xampp() {
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   
   int httpCode = http.POST(postData); 
-  if (httpCode > 0) {
-    String payload = http.getString(); 
-    Serial.print("HTTP Code: "); Serial.println(httpCode); 
-    Serial.print("Response: "); Serial.println(payload); 
-  } else {
-    Serial.print("HTTP POST Error: "); Serial.println(httpCode); 
-  }
-  
+  String payload = http.getString(); 
+
+  Serial.print("URL: "); Serial.println(URL); 
+  Serial.print("Data: "); Serial.println(postData); 
+  Serial.print("HTTP Code: "); Serial.println(httpCode); 
+  Serial.print("Response: "); Serial.println(payload); 
+  Serial.println("--------------------------------------------------");
+
   http.end();  // Close connection
   delay(20000); // Delay between uploads
+
+
 }

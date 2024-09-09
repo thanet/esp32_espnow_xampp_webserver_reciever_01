@@ -1,40 +1,33 @@
-/*
-  Rui Santos & Sara Santos - Random Nerd Tutorials
-  Complete project details at https://RandomNerdTutorials.com/esp32-esp-now-wi-fi-web-server/
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.  
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
 #include <esp_now.h>
 #include <WiFi.h>
 #include "ESPAsyncWebServer.h"
 #include <Arduino_JSON.h>
-
 #include <HTTPClient.h> 
 
-// Replace with your network credentials (STATION)  enjoy office
-// const char* ssid = "True Enjoy";
-// const char* password = "enjoy7777777777";
-// String URL = "http://127.0.0.1/esp8266/upload_01.php";
+// Network configurations
+const char* ssid1 = "True Enjoy";
+const char* password1 = "enjoy7777777777";
+String URL1 = "http://192.168.1.57/espdata_00/upload_01.php";
 
+const char* ssid2 = "ENJMesh";
+const char* password2 = "enjoy042611749";
+String URL2 = "http://192.168.0.113/EspData/upload_01.php";
 
+// Variables to hold the current configuration
+const char* ssid = "";
+const char* password = "";
+String URL = "";
 
-// Replace with your network credentials (STATION)  บ้านริมโขง
-const char* ssid = "ENJMesh";
-const char* password = "enjoy042611749";
-String URL = "http://192.168.0.113/EspData/upload_01.php";
-
-// public variable
+// Public variables
 int readmoduleno = 0;
 float temperature = 0; 
 float humidity = 0;
 int readId = 0;
 
-// phototype function
+// Prototype function
 void UploadData2Xampp();
 
-
-// Structure example to receive data
-// Must match the sender structure
+// Structure to receive data
 typedef struct struct_message {
   int read_module_no;
   float temp;
@@ -49,9 +42,8 @@ JSONVar board;
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
 
-// callback function that will be executed when data is received
+// Callback function for received data
 void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) { 
-  // Copies the sender mac address to a string
   char macStr[18];
   Serial.print("Packet received from: ");
   snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -67,26 +59,20 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
   events.send(jsonString.c_str(), "new_readings", millis());
   
   Serial.printf("Board ID %u: %u bytes\n", incomingReadings.read_module_no, len);
-  Serial.printf("t value: %4.2f \n", incomingReadings.temp);
-  Serial.printf("h value: %4.2f \n", incomingReadings.hum);
-  Serial.printf("readingID value: %d \n", incomingReadings.readingId);
+  Serial.printf("Temperature: %4.2f \n", incomingReadings.temp);
+  Serial.printf("Humidity: %4.2f \n", incomingReadings.hum);
+  Serial.printf("Reading ID: %d \n", incomingReadings.readingId);
   Serial.println();
 
-// ++for upload data to xampp
-
-    // ++get data from esp_now to temperator and humidity
-    readmoduleno = int(board["read_module_no"]);
-    temperature = incomingReadings.temp;
-    humidity = incomingReadings.hum;
-    readId = int(board["readingId"]);
-    
-
+  readmoduleno = incomingReadings.read_module_no;
+  temperature = incomingReadings.temp;
+  humidity = incomingReadings.hum;
+  readId = incomingReadings.readingId;
 }
 
-
-
 const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
+<!DOCTYPE HTML>
+<html>
 <head>
   <title>ESP-NOW DASHBOARD</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -113,16 +99,24 @@ const char index_html[] PROGMEM = R"rawliteral(
   <div class="content">
     <div class="cards">
       <div class="card temperature">
-        <h4><i class="fas fa-thermometer-half"></i> BOARD #1 - TEMPERATURE</h4><p><span class="reading"><span id="t1"></span> &deg;C</span></p><p class="packet">Reading ID: <span id="rt1"></span></p>
+        <h4><i class="fas fa-thermometer-half"></i> BOARD #1 - TEMPERATURE</h4>
+        <p><span class="reading"><span id="t1">0.00</span> &deg;C</span></p>
+        <p class="packet">Reading ID: <span id="rt1">0</span></p>
       </div>
       <div class="card humidity">
-        <h4><i class="fas fa-tint"></i> BOARD #1 - HUMIDITY</h4><p><span class="reading"><span id="h1"></span> &percnt;</span></p><p class="packet">Reading ID: <span id="rh1"></span></p>
+        <h4><i class="fas fa-tint"></i> BOARD #1 - HUMIDITY</h4>
+        <p><span class="reading"><span id="h1">0.00</span> &percnt;</span></p>
+        <p class="packet">Reading ID: <span id="rh1">0</span></p>
       </div>
       <div class="card temperature">
-        <h4><i class="fas fa-thermometer-half"></i> BOARD #2 - TEMPERATURE</h4><p><span class="reading"><span id="t2"></span> &deg;C</span></p><p class="packet">Reading ID: <span id="rt2"></span></p>
+        <h4><i class="fas fa-thermometer-half"></i> BOARD #2 - TEMPERATURE</h4>
+        <p><span class="reading"><span id="t2">0.00</span> &deg;C</span></p>
+        <p class="packet">Reading ID: <span id="rt2">0</span></p>
       </div>
       <div class="card humidity">
-        <h4><i class="fas fa-tint"></i> BOARD #2 - HUMIDITY</h4><p><span class="reading"><span id="h2"></span> &percnt;</span></p><p class="packet">Reading ID: <span id="rh2"></span></p>
+        <h4><i class="fas fa-tint"></i> BOARD #2 - HUMIDITY</h4>
+        <p><span class="reading"><span id="h2">0.00</span> &percnt;</span></p>
+        <p class="packet">Reading ID: <span id="rh2">0</span></p>
       </div>
     </div>
   </div>
@@ -133,6 +127,7 @@ if (!!window.EventSource) {
  source.addEventListener('open', function(e) {
   console.log("Events Connected");
  }, false);
+ 
  source.addEventListener('error', function(e) {
   if (e.target.readyState != EventSource.OPEN) {
     console.log("Events Disconnected");
@@ -146,34 +141,75 @@ if (!!window.EventSource) {
  source.addEventListener('new_readings', function(e) {
   console.log("new_readings", e.data);
   var obj = JSON.parse(e.data);
-  document.getElementById("t"+obj.id).innerHTML = obj.temperature.toFixed(2);
-  document.getElementById("h"+obj.id).innerHTML = obj.humidity.toFixed(2);
-  document.getElementById("rt"+obj.id).innerHTML = obj.readingId;
-  document.getElementById("rh"+obj.id).innerHTML = obj.readingId;
+  
+  // Update the temperature and humidity for the respective board ID
+  document.getElementById("t" + obj.read_module_no).innerHTML = obj.temperature.toFixed(2);
+  document.getElementById("h" + obj.read_module_no).innerHTML = obj.humidity.toFixed(2);
+  document.getElementById("rt" + obj.read_module_no).innerHTML = obj.readingId;
+  document.getElementById("rh" + obj.read_module_no).innerHTML = obj.readingId;
  }, false);
 }
 </script>
 </body>
-</html>)rawliteral";
+</html>
+)rawliteral";
 
+// Function to select network configuration
+void selectNetworkConfiguration() {
+  // Scan for available networks
+  int n = WiFi.scanNetworks();
+  Serial.println("Scan done");
 
+  bool network1Found = false;
+  bool network2Found = false;
+
+  // Check if the desired networks are found
+  for (int i = 0; i < n; i++) {
+    if (WiFi.SSID(i) == ssid1) {
+      network1Found = true;
+      Serial.println("Network 1 found");
+    }
+    if (WiFi.SSID(i) == ssid2) {
+      network2Found = true;
+      Serial.println("Network 2 found");
+    }
+  }
+
+  // Select network configuration based on availability
+  if (network1Found) {
+    ssid = ssid1;
+    password = password1;
+    URL = URL1;
+  } else if (network2Found) {
+    ssid = ssid2;
+    password = password2;
+    URL = URL2;
+  } else {
+    Serial.println("No preferred networks found, using default configuration.");
+    ssid = ssid2;  // Default to second network if none of the preferred ones are found
+    password = password2;
+    URL = URL2;
+  }
+}
 
 void setup() {
-  // Initialize Serial Monitor
   Serial.begin(115200);
 
-  // Set the device as a Station and Soft Access Point simultaneously
-  //WiFi.mode(WIFI_AP_STA);
-  
-// Set the device as a Station 
+  // Initialize WiFi and select network configuration
   WiFi.mode(WIFI_STA);
-      WiFi.setSleep(WIFI_PS_NONE);
-  // Set device as a Wi-Fi Station
+  WiFi.setSleep(WIFI_PS_NONE);
+  
+  selectNetworkConfiguration();
+  
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
   WiFi.begin(ssid, password);
+  
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.println("Setting as a Wi-Fi Station..");
+    Serial.print(".");
   }
+  Serial.println("Connected");
   Serial.print("Station IP Address: ");
   Serial.println(WiFi.localIP());
   Serial.print("Wi-Fi Channel: ");
@@ -184,51 +220,41 @@ void setup() {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
-  
-  // Once ESPNow is successfully Init, we will register for recv CB to
-  // get recv packer info
-  esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
+  // Register for received data callback
+  esp_now_register_recv_cb(OnDataRecv);
+
+  // Setup web server
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", index_html);
   });
-   
+
   events.onConnect([](AsyncEventSourceClient *client){
     if(client->lastId()){
       Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
     }
-    // send event with message "hello!", id current millis
-    // and set reconnect delay to 1 second
     client->send("hello!", NULL, millis(), 10000);
   });
   server.addHandler(&events);
   server.begin();
 }
- 
+
 void loop() {
   static unsigned long lastEventTime = millis();
   static const unsigned long EVENT_INTERVAL_MS = 5000;
   if ((millis() - lastEventTime) > EVENT_INTERVAL_MS) {
-    events.send("ping",NULL,millis());
+    events.send("ping", NULL, millis());
     lastEventTime = millis();
   }
 
-if (temperature > 0 && humidity > 0){
-
-
+  if (temperature > 0 && humidity > 0){
     UploadData2Xampp();
-}
-else{
-  Serial.println("no data to upload..");
-  delay(5000);
-}
-
-
+  } else {
+    Serial.println("No data to upload..");
+    delay(5000);
+  }
 }
 
-
-
-//Function for upload data to xampp
 void UploadData2Xampp() {
   Serial.println("Uploading data to server...");
 
