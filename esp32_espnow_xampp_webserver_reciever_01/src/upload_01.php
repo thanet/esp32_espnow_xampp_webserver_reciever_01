@@ -1,26 +1,12 @@
 <?php
 /*************************************************************************************************
- *  Created By: Tauseef Ahmad
- *  Created On: 3 April, 2023
+ *  Created By: net
+ *  Created On: 24/09-07
  *  
- *  YouTube Video: https://youtu.be/VEN5kgjEuh8
- *  My Channel: https://www.youtube.com/channel/UCOXYfOHgu-C-UfGyDcu5sYw/
  ***********************************************************************************************/
  
-$hostname = "localhost"; 
-$username = "root"; 
-$password = ""; 
-$database = "esp_data00"; 
-
-// Create connection
-$conn = mysqli_connect($hostname, $username, $password, $database);
-
-// Check connection
-if (!$conn) { 
-    die("Connection failed: " . mysqli_connect_error()); 
-} 
-
-echo "Database connection is OK<br>"; 
+// Include database configuration
+include 'config.php';
 
 // Check if form data is set
 if(isset($_POST["read_module_no"]) && isset($_POST["temperature"]) && isset($_POST["humidity"]) && isset($_POST["readingId"])) {
