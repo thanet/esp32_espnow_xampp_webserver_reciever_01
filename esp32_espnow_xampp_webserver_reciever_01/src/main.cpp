@@ -17,7 +17,14 @@ String URL2 = "http://192.168.0.113/EspData/upload_01.php";
 const char* ssid = "";
 const char* password = "";
 String URL = "";
+    // Set your Static IP address
+    IPAddress local_IP(192, 168, 1, 222);
+    // Set your Gateway IP address
+    IPAddress gateway(192, 168, 1, 1);
 
+    IPAddress subnet(255, 255, 0, 0);
+    IPAddress primaryDNS(8, 8, 8, 8);   //optional
+    IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 // Public variables
 int readmoduleno = 0;
@@ -311,6 +318,11 @@ void initializeWiFi() {
 
   Serial.print("Connecting to ");
   Serial.println(ssid);
+
+  // Configures static IP address
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  }
 
   WiFi.begin(ssid, password);   // Connect to Wi-Fi
 
