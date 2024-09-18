@@ -18,6 +18,7 @@ const char* ssid = "";
 const char* password = "";
 String URL = "";
 
+
 // Public variables
 int readmoduleno = 0;
 float temperature = 0; 
@@ -27,7 +28,10 @@ bool readytoupload = false;
 
 // Prototype function
 void UploadData2Xampp();
-
+void initializeWiFi();
+void initializeEspNow();
+void initializeWebServer();
+void setupEventSource();
 
 // Structure to receive data
 typedef struct struct_message {
@@ -57,8 +61,7 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
   board["temperature"] = incomingReadings.temp;
   board["humidity"] = incomingReadings.hum;
   board["readingId"] = incomingReadings.readingId;
-  String jsonString = JSON.stringify(board);
-  events.send(jsonString.c_str(), "new_readings", millis());
+  
   
   Serial.printf("Board ID %u: %u bytes\n", incomingReadings.read_module_no, len);
   Serial.printf("Temperature: %4.2f \n", incomingReadings.temp);
@@ -71,6 +74,9 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
   humidity = incomingReadings.hum;
   readId = incomingReadings.readingId;
   readytoupload = true;
+
+  String jsonString = JSON.stringify(board);
+  events.send(jsonString.c_str(), "new_readings", millis());
 }
 
 const char index_html[] PROGMEM = R"rawliteral(
@@ -198,48 +204,56 @@ void selectNetworkConfiguration() {
 void setup() {
   Serial.begin(115200);
 
-  // Initialize WiFi and select network configuration
-  WiFi.mode(WIFI_STA);
-  WiFi.setSleep(WIFI_PS_NONE);
+  // Call each function to initialize components
+  initializeWiFi();         // Setup WiFi connection
+  initializeEspNow();        // Initialize ESP-NOW
+  initializeWebServer();     // Setup web server
+  setupEventSource();        // Setup event source for real-time updates
+
+  Serial.println("Setup completed.");
+
+  // // Initialize WiFi and select network configuration
+  // WiFi.mode(WIFI_STA);
+  // WiFi.setSleep(WIFI_PS_NONE);
   
-  selectNetworkConfiguration();
+  // selectNetworkConfiguration();
   
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
+  // Serial.print("Connecting to ");
+  // Serial.println(ssid);
+  // WiFi.begin(ssid, password);
   
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print(".");
-  }
-  Serial.println("Connected");
-  Serial.print("Station IP Address: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("Wi-Fi Channel: ");
-  Serial.println(WiFi.channel());
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(1000);
+  //   Serial.print(".");
+  // }
+  // Serial.println("Connected");
+  // Serial.print("Station IP Address: ");
+  // Serial.println(WiFi.localIP());
+  // Serial.print("Wi-Fi Channel: ");
+  // Serial.println(WiFi.channel());
 
-  // Init ESP-NOW
-  if (esp_now_init() != ESP_OK) {
-    Serial.println("Error initializing ESP-NOW");
-    return;
-  }
+  // // Init ESP-NOW
+  // if (esp_now_init() != ESP_OK) {
+  //   Serial.println("Error initializing ESP-NOW");
+  //   return;
+  // }
 
-  // Register for received data callback
-  esp_now_register_recv_cb(OnDataRecv);
+  // // Register for received data callback
+  // esp_now_register_recv_cb(OnDataRecv);
 
-  // Setup web server
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html);
-  });
+  // // Setup web server
+  // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+  //   request->send_P(200, "text/html", index_html);
+  // });
 
-  events.onConnect([](AsyncEventSourceClient *client){
-    if(client->lastId()){
-      Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
-    }
-    client->send("hello!", NULL, millis(), 10000);
-  });
-  server.addHandler(&events);
-  server.begin();
+  // events.onConnect([](AsyncEventSourceClient *client){
+  //   if(client->lastId()){
+  //     Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+  //   }
+  //   client->send("hello!", NULL, millis(), 10000);
+  // });
+  // server.addHandler(&events);
+  // server.begin();
 }
 
 void loop() {
@@ -281,5 +295,73 @@ void UploadData2Xampp() {
   
   http.end();  // Close connection
   readytoupload = false;  // reset status to prevent double upload
-  delay(20000); // Delay between uploads
+  delay(1000); // Delay between uploads
+}
+
+
+// Separate function to handle Wi-Fi connection
+void initializeWiFi() {
+  Serial.println("Initializing Wi-Fi...");
+
+  WiFi.mode(WIFI_STA);         // Set to station mode
+  WiFi.setSleep(WIFI_PS_NONE); // Disable Wi-Fi sleep for a stable connection
+
+  // Custom function to select network based on availability
+  selectNetworkConfiguration(); // Choose the SSID, password, and URL
+
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);   // Connect to Wi-Fi
+
+  // Wait until Wi-Fi is connected
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("Connected to Wi-Fi.");
+  Serial.print("Station IP Address: ");
+  Serial.println(WiFi.localIP());
+  Serial.print("Wi-Fi Channel: ");
+  Serial.println(WiFi.channel());
+}
+
+// Separate function to initialize ESP-NOW
+void initializeEspNow() {
+  Serial.println("Initializing ESP-NOW...");
+
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW.");
+    return;
+  }
+  
+  // Register the callback function for when data is received
+  esp_now_register_recv_cb(OnDataRecv);
+  Serial.println("ESP-NOW initialized successfully.");
+}
+
+// Separate function to setup web server
+void initializeWebServer() {
+  Serial.println("Initializing web server...");
+
+  // Define the main route
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/html", index_html);
+  });
+
+  server.begin(); // Start the server
+  Serial.println("Web server started.");
+}
+
+// Separate function to setup EventSource (for real-time updates)
+void setupEventSource() {
+  events.onConnect([](AsyncEventSourceClient *client){
+    if (client->lastId()) {
+      Serial.printf("Client reconnected! Last message ID: %u\n", client->lastId());
+    }
+    client->send("hello!", NULL, millis(), 10000);
+  });
+
+  server.addHandler(&events); // Add EventSource handler to the server
+  Serial.println("Event source set up.");
 }
