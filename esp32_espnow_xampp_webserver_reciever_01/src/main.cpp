@@ -7,11 +7,11 @@
 // Network configurations
 const char* ssid1 = "True Enjoy";
 const char* password1 = "enjoy7777777777";
-String URL1 = "http://192.168.1.57/espdata_00/upload_01.php";
+String URL1 = "http://enjoycctv.trueddns.com:17521/share/public/espdata_00/upload_01.php";
 
 const char* ssid2 = "ENJMesh";
 const char* password2 = "enjoy042611749";
-String URL2 = "http://192.168.0.113/EspData/upload_01.php";
+String URL2 = "http://enjoycctv.trueddns.com:17521/share/public/espdata_00/upload_01.php";
 
 // Variables to hold the current configuration
 const char* ssid = "";
