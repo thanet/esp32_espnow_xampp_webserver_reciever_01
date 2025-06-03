@@ -24,7 +24,7 @@ if(isset($_POST["read_module_no"]) && isset($_POST["temperature"]) && isset($_PO
     }
 
     // Bind parameters (i = integer, d = double, s = string, b = BLOB)
-    $stmt->bind_param("idid", $rmn, $t, $h, $rid);
+    $stmt->bind_param("iddi", $rmn, $t, $h, $rid);
     
     // Execute the statement
     if ($stmt->execute()) { 
